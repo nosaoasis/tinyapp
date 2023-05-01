@@ -69,6 +69,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
+app.post("/urls/:id", (req, res) => {
+  const {id} = req.params
+  const {newLongURL} = req.body
+  if (!urlDatabase[id]) return res.redirect("/urls")
+  urlDatabase[id] = newLongURL
+  res.redirect("/urls")
+})
+
 app.get("*", (req, res) => {
   res
     .status(400)
