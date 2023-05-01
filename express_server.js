@@ -43,6 +43,14 @@ const findEmail = (users, email) => {
   return false;
 };
 
+const authenticateLogin = (users, email, password) => {
+  for (let user in users) {
+    const userEmailFound = findEmail(users, email);
+    if (userEmailFound && users[user].password === password) return users[user];
+  }
+  return false;
+};
+
 // ========================================================================
 // ========================================================================
 
@@ -148,10 +156,23 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { username } = req.body;
-  if (!username) return res.redirect("/urls");
-
-  res.cookie("username", username);
+  const { email, password } = req.body;
+  if (email == "" || password == "")
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>An error seem to have occurred with the registration</p><p style='text-align:center;'><a href='register'><button>Register</button></a></p>"
+      );
+  const findUserInUsers = authenticateLogin(users, email, password);
+  if (!findUserInUsers) {
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>Login Failure</h2><p style='text-align:center;'>The email and/or password you have attempted to login with has failed. Please check the details and try again.</p><p style='text-align:center;'><a href='login'><button>login</button></a></p>"
+      );
+  }
+  const id = findUserInUsers.id;
+  res.cookie("user_id", id);
   res.redirect("/urls");
 });
 
@@ -162,7 +183,7 @@ app.post("/register", (req, res) => {
     return res
       .status(400)
       .send(
-        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>An error seem to have occurred with the registration</p><p style='text-align:center;'><a href='register'><button>Register</button></a></p>"
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>An error seem to have occurred with the registration process. Please ensure the email and password are correct.</p><p style='text-align:center;'><a href='register'><button>Register</button></a></p>"
       );
 
   // confirm that the email does not exist in the users object
@@ -187,7 +208,7 @@ app.post("/register", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 app.get("*", (req, res) => {
