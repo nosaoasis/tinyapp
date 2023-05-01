@@ -32,10 +32,24 @@
             </button></form method="POST"
           >
           <% } else { %>
-          <form class="d-flex" method="POST" action="/login">
-            <input type="text" name="username" class="form-control mr-4" />
-            <button class="btn btn-info">Login</button>
-          </form>
+            <div class="navbar-nav ml-auto d-flex align-items-center">
+              <a href="/register">
+                <button
+                  type="submit"
+                  class="btn btn-info text-white text-capitalize font-weight-bold"
+                >
+                  Register
+                </button></a
+              > &nbsp;&nbsp;
+              <a href="/login">
+                <button
+                  type="submit"
+                  class="btn btn-info text-white text-capitalize font-weight-bold"
+                >
+                  login
+                </button></a
+              >
+            </div>
           <% } %>
         </div>
       </div>
