@@ -34,6 +34,18 @@ const generateRandomString = (len) => {
   return generatedNumber;
 };
 
+const findEmail = (users, email) => {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// ========================================================================
+// ========================================================================
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -48,7 +60,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
-  
+
   if (!userId) return res.redirect("/register");
   const user = users[userId];
   const templateVars = {
@@ -135,7 +147,21 @@ app.post("/login", (req, res) => {
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   // confirm inputs are not empty
-  if (email == "" || password == "") return res.render("register");
+  if (email == "" || password == "")
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>An error seem to have occurred with the registration</p><p style='text-align:center;'><a href='register'><button>Register</button></a></p>"
+      );
+
+  // confirm that the email does not exist in the users object
+  const queryEmail = findEmail(users, email);
+  if (queryEmail)
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>An error seem to have occurred with the registration</p><p style='text-align:center;'><a href='register'><button>Register</button></a></p>"
+      );
 
   const id = generateRandomString(email.length);
   const newUser = {
