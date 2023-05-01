@@ -60,6 +60,14 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/register", (req, res) => {
+  const username = req.cookies["username"];
+  const templateVars = {  
+    username 
+  };
+  res.status(200).render("register", templateVars);
+});
+
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   if (!longURL) {
