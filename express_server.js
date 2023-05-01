@@ -9,8 +9,14 @@ app.use(express.json());
 app.use(cookieParser());
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -51,6 +57,16 @@ const authenticateLogin = (users, email, password) => {
   return false;
 };
 
+const fetchUserUrls = (urlDatabase, userId) => {
+  let userUrls = {};
+  for (let shortUrl in urlDatabase) {
+    if (urlDatabase[shortUrl].userID == userId) {
+      userUrls[shortUrl] = urlDatabase[shortUrl].longURL;
+    }
+  }
+  return userUrls;
+};
+
 // ========================================================================
 // ========================================================================
 
@@ -70,11 +86,15 @@ app.get("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
 
   if (!userId) return res.redirect("/register");
+
+  let userUrls = fetchUserUrls(urlDatabase, userId);
+
   const user = users[userId];
   const templateVars = {
-    urls: urlDatabase,
     user,
+    urls: userUrls,
   };
+
   res.render("urls_index", templateVars);
 });
 
@@ -92,16 +112,25 @@ app.get("/urls/:id", (req, res) => {
   const { id } = req.params;
   const userId = req.cookies["user_id"];
   if (!userId) return res.redirect("/register");
-  if(!urlDatabase[id]) return res
-  .status(400)
-  .send(
-    "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>The page you're trying to access could not be found. Please check the url and try again</p><p style='text-align:center;'><a href='/urls'><button>Home</button></a></p>"
-  );
+  if (!urlDatabase[id])
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>The page you're trying to access could not be found. Please check the url and try again</p><p style='text-align:center;'><a href='/urls'><button>Home</button></a></p>"
+      );
+
+  if (urlDatabase[id].userID !== userId) {
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>Permission Error</h2><p style='text-align:center;'>You have not been granted access to the page you seek.</p><p style='text-align:center;'><a href='/urls'><button>Home</button></a></p>"
+      );
+  }
 
   const user = users[userId];
   const templateVars = {
     id,
-    longURL: urlDatabase[id],
+    longURL: urlDatabase[id].longURL,
     user,
   };
   res.render("urls_show", templateVars);
@@ -130,14 +159,23 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const {id} = req.params
+  const { id } = req.params;
+  if (!id || !urlDatabase[id])
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>The page you are trying to access cannot be found. Please check your url address and try again.</p><p style='text-align:center;'><a href='urls'><button>Home</button></a></p>"
+      );
+
+
   let longURL = urlDatabase[id];
   res.redirect(longURL);
 });
 
 app.post("/urls", (req, res) => {
   const userId = req.cookies["user_id"];
-  if (!userId) return res
+  if (!userId)
+    return res
       .status(400)
       .send(
         "<div><h2 style='text-align:center;'>Permission Denied</h2><p style='text-align:center;'>You must be logged in to shorten a url.</p><p style='text-align:center;'><a href='login'><button>Login</button></a></p>"
@@ -145,31 +183,44 @@ app.post("/urls", (req, res) => {
 
   const { longURL } = req.body;
   if (!longURL) {
-    res.redirect("/urls/new");
+    return res.redirect("/urls/new");
   }
+
   const id = generateRandomString();
-  urlDatabase[id] = longURL;
+  urlDatabase[id] = {
+    longURL,
+    userID: userId,
+  };
+
   res.redirect(`/urls/${id}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const userId = req.cookies["user_id"];
+  if (!userId) return res.redirect("/register");
+
   const { shortURL } = req.params;
-  if (!shortURL) {
-    return res.redirect("/urls");
+  if (!shortURL) return res.redirect("/urls");
+
+  if (!urlDatabase[shortURL] || urlDatabase[shortURL].userID !== userId) {
+    return res
+      .status(400)
+      .send(
+        "<div><h2 style='text-align:center;'>Permission Error</h2><p style='text-align:center;'>You have not been granted access to the page you seek.</p><p style='text-align:center;'><a href='/urls'><button>Home</button></a></p>"
+      );
   }
-  for (let shorturl in urlDatabase) {
-    if (shorturl == shortURL) {
-      delete urlDatabase[shortURL];
-      return res.redirect("/urls");
-    }
-  }
+
+  delete urlDatabase[shortURL];
+  return res.redirect("/urls");
 });
 
 app.post("/urls/:id", (req, res) => {
   const { id } = req.params;
   const { newLongURL } = req.body;
+
   if (!urlDatabase[id]) return res.redirect("/urls");
-  urlDatabase[id] = newLongURL;
+
+  urlDatabase[id].longURL = newLongURL;
   res.redirect("/urls");
 });
 
