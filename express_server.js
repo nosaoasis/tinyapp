@@ -26,9 +26,17 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/:id", (req, res) => {
+  const { id } = req.params;
+  const templateVars = { id, longURL: urlDatabase[id] };
+  res.render("urls_show", templateVars);
+});
+
 app.get("*", (req, res) => {
-  res.status(400).send("Sorry, page not found. <a href='/urls'>Back to home</a>")
-})
+  res
+    .status(400)
+    .send("Sorry, page not found. <a href='/urls'>Back to home</a>");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
