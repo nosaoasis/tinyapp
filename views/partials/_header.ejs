@@ -13,9 +13,17 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+      <div class="navbar-nav d-flex d-flex container-fluid align-items-center">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" href="/urls">My URLs</a>
+          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        </div>
+        <div class="navbar-nav ml-auto d-flex align-items-center">
+          <form class="d-flex" method="POST" action="/login">
+            <input type="text" name="username" class="form-control mr-4" />
+            <button class="btn btn-info">Login</button>
+          </form>
+        </div>
       </div>
     </div>
   </nav>
