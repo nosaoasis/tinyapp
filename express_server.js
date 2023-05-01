@@ -56,6 +56,19 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const {shortURL} = req.params
+  if (!shortURL) {
+    return res.redirect("/urls")
+  }
+  for (let shorturl in urlDatabase) {
+    if (shorturl == shortURL) {
+      delete urlDatabase[shortURL];
+      return res.redirect("/urls");
+    }
+  }
+});
+
 app.get("*", (req, res) => {
   res
     .status(400)
