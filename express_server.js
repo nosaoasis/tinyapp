@@ -4,7 +4,12 @@ const cookieParser = require("cookie-parser");
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
-const {findEmail} = require("./helpers")
+const {
+  findEmail,
+  generateRandomString,
+  authenticateLogin,
+  fetchUserUrls,
+} = require("./helpers");
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -14,7 +19,7 @@ app.use(cookieParser());
 app.use(
   cookieSession({
     name: "session",
-    keys: ["key1", "key2"]
+    keys: ["key1", "key2"],
   })
 );
 
@@ -40,31 +45,6 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
-};
-
-// random string function ......
-const generateRandomString = (len) => {
-  let generatedNumber = Math.random()
-    .toString(20)
-    .substr(2, `${len > 6 ? (len = 6) : (len = 6)}`);
-  return generatedNumber;
-};
-const authenticateLogin = (users, email, password) => {
-  for (let user in users) {
-    const userEmailFound = findEmail(users, email);
-    if (userEmailFound && bcrypt.compareSync(password, users[user].password)) return users[user];
-  }
-  return false;
-};
-
-const fetchUserUrls = (urlDatabase, userId) => {
-  let userUrls = {};
-  for (let shortUrl in urlDatabase) {
-    if (urlDatabase[shortUrl].userID == userId) {
-      userUrls[shortUrl] = urlDatabase[shortUrl].longURL;
-    }
-  }
-  return userUrls;
 };
 
 // ========================================================================
@@ -167,7 +147,6 @@ app.get("/u/:id", (req, res) => {
         "<div><h2 style='text-align:center;'>404 Error</h2><p style='text-align:center;'>The page you are trying to access cannot be found. Please check your url address and try again.</p><p style='text-align:center;'><a href='urls'><button>Home</button></a></p>"
       );
 
-
   let longURL = urlDatabase[id];
   res.redirect(longURL);
 });
@@ -221,7 +200,8 @@ app.post("/urls/:id", (req, res) => {
   const { id } = req.params;
   const { newLongURL } = req.body;
 
-  if (!urlDatabase[id] || urlDatabase[id].userID !== userId) return res.redirect("/urls");
+  if (!urlDatabase[id] || urlDatabase[id].userID !== userId)
+    return res.redirect("/urls");
 
   urlDatabase[id].longURL = newLongURL;
   res.redirect("/urls");
@@ -271,7 +251,7 @@ app.post("/register", (req, res) => {
   const newUser = {
     id,
     email,
-    password : bcrypt.hashSync(password, 10),
+    password: bcrypt.hashSync(password, 10),
   };
   req.session["user_id"] = id;
   users[id] = newUser;
