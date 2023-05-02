@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcryptjs");
 const cookieSession = require("cookie-session");
+const {findEmail} = require("./helpers")
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -48,16 +49,6 @@ const generateRandomString = (len) => {
     .substr(2, `${len > 6 ? (len = 6) : (len = 6)}`);
   return generatedNumber;
 };
-
-const findEmail = (users, email) => {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
-
 const authenticateLogin = (users, email, password) => {
   for (let user in users) {
     const userEmailFound = findEmail(users, email);
